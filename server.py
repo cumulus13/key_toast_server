@@ -63,7 +63,7 @@ def send_message(message, host='localhost', port=12345):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1)  # Set a 5-second timeout for the connection attempt
             s.connect((host, port))
-            s.sendall(message.encode('utf-8'))
+            s.sendall(message.encode('utf-8') if hasattr(message, 'encode') else message)
         print(f"Message sent successfully: {message}")
     except ConnectionRefusedError:
         print(f"Error: Could not connect to the server at {host}:{port}. Is the server running?")
@@ -81,7 +81,7 @@ def on_press(key):
         root.quit()
         return False  # Stop the listener
 
-def run_server():
+def run_server(listen_keyboard = False):
     global root
     root = tk.Tk()
     root.withdraw()
@@ -90,9 +90,10 @@ def run_server():
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
 
-    # Start listening for the 'q' key press
-    listener = keyboard.Listener(on_press=on_press)
-    listener.start()
+    if listen_keyboard:
+        # Start listening for the 'q' key press
+        listener = keyboard.Listener(on_press=on_press)
+        listener.start()
 
     root.mainloop()
     
@@ -102,6 +103,7 @@ def main():
     parser.add_argument("--port", type=int, default=12345, help="Server port (default: 12345)")
     parser.add_argument("action", nargs="?", default="server", help="Action to perform: 'server' or 'send'")
     parser.add_argument("message", nargs="*", help="Text to send as a toast notification")
+    parser.add_argument('-l', '--listen-keyboard', action = 'store_true', help = 'Listen keyboard too')
 
     args = parser.parse_args()
 
@@ -113,7 +115,7 @@ def main():
         message = " ".join(args.message)
         send_message(message, host=args.host, port=args.port)
     elif args.action == "server":
-        run_server()
+        run_server(args.listen_keyboard)
     else:
         print(f"Error: Unknown action '{args.action}'. Use 'server' or 'send'.")
         parser.print_help()
