@@ -45,7 +45,7 @@ def start_server(host='localhost', port=12345):
             client_socket, addr = server_socket.accept()
             print(f"Connection from {addr}")
             
-            data = client_socket.recv(1024).decode('utf-8')
+            data = client_socket.recv(1024).decode('utf-8', errors = 'ignore')
             if data:
                 print(f"Received message: {data}")
                 root.after(0, lambda: show_toast(data))
@@ -64,7 +64,7 @@ def send_message(message, host='localhost', port=12345):
             s.settimeout(1)  # Set a 5-second timeout for the connection attempt
             s.connect((host, port))
             s.sendall(message.encode('utf-8') if hasattr(message, 'encode') else message)
-        print(f"Message sent successfully: {message}")
+        if __name__ ==  '__main__': print(f"Message sent successfully: {message}")
     except ConnectionRefusedError:
         print(f"Error: Could not connect to the server at {host}:{port}. Is the server running?")
     except socket.timeout:
